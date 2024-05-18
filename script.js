@@ -4,6 +4,8 @@ let words = []; // Array to store words from text file
 let currentIndex = 0; // Index to keep track of current word being read
 let answer = [];
 let inputHistory  = [];
+let isWord = [];
+let randomWords = [];
 const preferenceCheckbox = document.getElementById('preferenceCheckbox');
 const saveHistory = document.getElementById('saveHistory');
 // 创建 AudioContext 对象
@@ -157,9 +159,35 @@ function readNextWord() {
         const letters = words[currentIndex].split('').join(' ');
         speakText(letters, false);
         try{
-        speakText(words[currentIndex], true);
+        // speakText(words[currentIndex], true);
+        
+        const randomNumber = Math.floor(Math.random() * 2);
+    switch (randomNumber) {
+        // case 3:
+            // playSound(350, 1);
+            // speakText("emmmmmmm", true);
+            // break;
+        case 1:
+            speakText(words[currentIndex], true);
+            isWord[currentIndex - 1] = true;
+            // console.log("随机单词: ", randomWord);
+            break;
+        case 0:
+            const randomSequence = generateRandomLetterSequence(words[currentIndex].length);
+            speakText(randomSequence, true);
+            console.log("随机字母序列: ", randomSequence);
+            isWord[currentIndex - 1] = false;
+            randomWords[currentIndex - 1] = randomSequence;
+            break;
+        default:
+            console.log("未知操作");
+            break;
+    }
+
+
+
         }catch (error) {
-            console.log(error.message());
+            console.log(error.message);
         } finally {
         // playSound(450, 1.5);
         }
@@ -172,6 +200,8 @@ function readNextWord() {
         thisTrail['words'] = words;
         thisTrail['answer'] = answer;
         thisTrail['inputHistory'] = inputHistory;
+        thisTrail['isWord'] = isWord;
+thisTrail['randomWords'] = randomWords;         
         if (saveHistory.checked) {
         try{
 addItemToList(thisTrail);
@@ -191,3 +221,14 @@ addItemToList(thisTrail);
 // };
 
 
+
+// 生成随机字母序列
+function generateRandomLetterSequence(length) {
+    const letters = "abcdooaaiiieeeuuuaaaeeeiiiooouuehilmnoprst";
+    let result = "";
+    for (let i = 0; i < length; i++) {
+        const randomIndex = Math.floor(Math.random() * letters.length);
+        result += letters[randomIndex];
+    }
+    return result;
+}
