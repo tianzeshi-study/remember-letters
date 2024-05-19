@@ -1,0 +1,80 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+p {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+button {
+  font-size: 16px;
+  padding: 8px 12px;
+  margin-right: 10px;
+  border: none;
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #e0e0e0;
+}
+
+label {
+  font-size: 16px;
+  display: block;
+  margin-bottom: 10px;
+}
+
+input[type="checkbox"] {
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+#result {
+  margin-top: 20px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+label[for="userInput"] {
+  font-size: 16px;
+  display: block;
+  margin-top: 20px;
+}
+
+input[type="text"] {
+  font-size: 16px;
+  padding: 8px 12px;
+  width: 300px;
+  margin-top: 10px;
+}
+
+p:last-child {
+  font-size: 14px;
+  margin-top: 40px;
+}
+
+p:last-child a {
+  color: #333;
+  text-decoration: none;
+}
+
+p:last-child a:hover {
+  text-decoration: underline;
+}
+
+p:last-child::before {
+  content: "© ";
+}
+
+p:last-child::after {
+  content: " tianzeshi_study All rights reserved.";
+}

@@ -3,7 +3,7 @@ const resultDiv = document.getElementById('result');
 let words = []; // Array to store words from text file
 let currentIndex = 0; // Index to keep track of current word being read
 let answer = [];
-let inputHistory  = [];
+let inputHistory = [];
 let isWord = [];
 let randomWords = [];
 const preferenceCheckbox = document.getElementById('preferenceCheckbox');
@@ -11,7 +11,7 @@ const saveHistory = document.getElementById('saveHistory');
 // 创建 AudioContext 对象
 var audioContext = new(window.AudioContext || window.webkitAudioContext)();
 
-let thisTrail = {}; 
+let thisTrail = {};
 // 检查本地存储中是否已存在列表
 let savedHistory = localStorage.getItem('savedHistory');
 
@@ -22,14 +22,13 @@ if (!savedHistory) {
     // 如果存在，则从本地存储中加载列表数据
     savedHistory = JSON.parse(savedHistory);
 }
-
+const lastTrail = savedHistory[savedHistory.length - 1];
 // 添加项目到列表
 function addItemToList(item) {
     savedHistory.push(item);
     // 更新本地存储
     localStorage.setItem('savedHistory', JSON.stringify(savedHistory));
 }
-
 
 // 检查是否按下回车键
 function checkEnter(event) {
@@ -93,7 +92,7 @@ function compareInput(input) {
     resultDiv.textContent = result;
     // if (result == 'Correct!') {
     if (result == true) {
-        console.log(currentIndex);
+        console.log(currentIndex -1 );
         playSound(700, 0.75);
         answer[currentIndex - 1] = true;
         setTimeout(function () {
@@ -123,9 +122,9 @@ function speakText(text, play) {
     // const utterance = new SpeechSynthesisUtterance(letters);
     utterance.rate = 1.5; // 将语速设置为原来的两倍
     utterance.onend = function () {
-        if (currentIndex < words.length) {
+        if (currentIndex <= words.length) {
             getUserInput();
-            if  ( play ==true) {
+            if (play == true) {
                 getUserInput();
                 playSound(400, 1.5);
                 console.log("单词时长：" + utterance.duration + " 秒");
@@ -158,38 +157,57 @@ function readNextWord() {
     if (currentIndex < words.length) {
         const letters = words[currentIndex].split('').join(' ');
         speakText(letters, false);
-        try{
-        // speakText(words[currentIndex], true);
-        
-        const randomNumber = Math.floor(Math.random() * 2);
-    switch (randomNumber) {
-        // case 3:
-            // playSound(350, 1);
-            // speakText("emmmmmmm", true);
-            // break;
-        case 1:
-            speakText(words[currentIndex], true);
-            isWord[currentIndex - 1] = true;
-            // console.log("随机单词: ", randomWord);
-            break;
-        case 0:
-            const randomSequence = generateRandomLetterSequence(words[currentIndex].length);
-            speakText(randomSequence, true);
-            console.log("随机字母序列: ", randomSequence);
-            isWord[currentIndex - 1] = false;
-            randomWords[currentIndex - 1] = randomSequence;
-            break;
-        default:
-            console.log("未知操作");
-            break;
-    }
+        try {
+            // speakText(words[currentIndex], true);
+            if (!lastTrail) {
+                const randomNumber = Math.floor(Math.random() * 2);
+                switch (randomNumber) {
+                    // case 3:
+                    // playSound(350, 1);
+                    // speakText("emmmmmmm", true);
+                    // break;
+                case 1:
+                    speakText(words[currentIndex], true);
+                    isWord[currentIndex] = true;
+                    // console.log("随机单词: ", randomWord);
+                    break;
+                case 0:
+                    const randomSequence = generateRandomLetterSequence(words[currentIndex].length);
+                    speakText(randomSequence, true);
+                    console.log("随机字母序列: ", randomSequence);
+                    isWord[currentIndex] = false;
+                    randomWords[currentIndex] = randomSequence;
+                    break;
+                default:
+                    console.log("未知操作");
+                    break;
+                }
+            } else {
+                // isWord[currentIndex - 1]  =  lastTrail['isWord'][currentIndex - 1] === true ? false : true;
+                isWord[currentIndex] = !lastTrail['isWord'][currentIndex];
 
+                console.log("exist  last trail");
+                console.log("lastTrail is word :" + lastTrail['isWord'][currentIndex]);
+                console.log("thisTrail is word :" + isWord[currentIndex]);
+                if (isWord[currentIndex]) {
+                    speakText(words[currentIndex], true);
+                } else {
 
+                    const randomSequence = generateRandomLetterSequence(words[currentIndex].length);
+                    speakText(randomSequence, true);
+                    console.log("随机字母序列: ", randomSequence);
+                    // isWord[currentIndex - 1] = false;
+                    randomWords[currentIndex] = randomSequence;
 
-        }catch (error) {
+                }
+
+            }
+
+        } catch (error) {
             console.log(error.message);
-        } finally {
-        // playSound(450, 1.5);
+        }
+        finally {
+            // playSound(450, 1.5);
         }
         currentIndex++;
         // userInput = getUserInput();
@@ -201,25 +219,24 @@ function readNextWord() {
         thisTrail['answer'] = answer;
         thisTrail['inputHistory'] = inputHistory;
         thisTrail['isWord'] = isWord;
-thisTrail['randomWords'] = randomWords;         
+        thisTrail['randomWords'] = randomWords;
         if (saveHistory.checked) {
-        try{
-addItemToList(thisTrail);
-        } catch (error) {
-              console.log('An error occurred:', error.message);
-        }
-        resultDiv.textContent = "saved successfully .";
-        console.log("successfully saved!");
+            try {
+                addItemToList(thisTrail);
+            } catch (error) {
+                console.log('An error occurred:', error.message);
+            }
+            resultDiv.textContent = "saved successfully .";
+            console.log("successfully saved!");
         } else {
             console.log("history not saved");
-        }            
+        }
     }
 }
 
 // Load text file and start reading
 // loadTextFile();
 // };
-
 
 
 // 生成随机字母序列
@@ -231,4 +248,22 @@ function generateRandomLetterSequence(length) {
         result += letters[randomIndex];
     }
     return result;
+}
+
+function outputHistory() {
+    const textContent = localStorage.getItem("savedHistory");
+
+    // 创建一个新的 Blob 对象，将文本内容放入其中
+    const blob = new Blob([textContent], {
+        type: "text/plain"
+    });
+
+    // 创建一个下载链接
+    const downloadLink = document.createElement("a");
+    downloadLink.download = "output.json"; // 下载文件的名称
+    downloadLink.href = window.URL.createObjectURL(blob);
+
+    // 点击链接以下载文件
+    downloadLink.click();
+
 }
