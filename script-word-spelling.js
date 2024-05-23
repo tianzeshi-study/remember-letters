@@ -6,6 +6,7 @@ let answer = [];
 let inputHistory = [];
 let isWord = [];
 let randomWords = [];
+let ltm = [];
 const preferenceCheckbox = document.getElementById('preferenceCheckbox');
 const saveHistory = document.getElementById('saveHistory');
 // 创建 AudioContext 对象
@@ -13,7 +14,7 @@ var audioContext = new(window.AudioContext || window.webkitAudioContext)();
 
 let thisTrail = {};
 // 检查本地存储中是否已存在列表
-let savedHistory = localStorage.getItem('savedHistory');
+let savedHistory = localStorage.getItem('ltmSavedHistory');
 
 // 如果本地存储中不存在列表，则创建一个空数组
 if (!savedHistory) {
@@ -27,7 +28,7 @@ const lastTrail = savedHistory[savedHistory.length - 1];
 function addItemToList(item) {
     savedHistory.push(item);
     // 更新本地存储
-    localStorage.setItem('savedHistory', JSON.stringify(savedHistory));
+    localStorage.setItem('ltmSavedHistory', JSON.stringify(savedHistory));
 }
 
 // 检查是否按下回车键
@@ -61,7 +62,7 @@ function playSound(frequency, volume) {
     // 开始播放
     oscillator.start();
     // 停止播放（持续时间）
-    oscillator.stop(audioContext.currentTime + 0.2); // 1 * 0.2 秒后停止播放
+    oscillator.stop(audioContext.currentTime + 0.2); // 1 秒后停止播放
 }
 
 // window.onload = function() {
@@ -126,7 +127,7 @@ function speakText(text, play) {
             getUserInput();
             if (play == true) {
                 getUserInput();
-                playSound(450, 1.5);
+                playSound(400, 1.5);
                 console.log("单词时长：" + utterance.duration + " 秒");
             } else {
                 // console.log("not play ");
@@ -152,62 +153,14 @@ function getUserInput() {
     return userInput
 }
 
-
+// Function to read the next word
 function readNextWord() {
     if (currentIndex < words.length) {
-        const letters = words[currentIndex].split('').join(' ');
+        // const letters = words[currentIndex].split('').join(' ');
         // speakText(letters, false);
-        playTextWithTone(letters);
         try {
-            // speakText(words[currentIndex], true);
-            if (!lastTrail) {
-                const randomNumber = Math.floor(Math.random() * 2);
-                switch (randomNumber) {
-                    // case 3:
-                    // playSound(350, 1);
-                    // speakText("emmmmmmm", true);
-                    // break;
-                case 1:
-                    // speakText(words[currentIndex], true);
-                    speakText(words[currentIndex], false);
-                    isWord[currentIndex] = true;
-                    // console.log("随机单词: ", randomWord);
-                    break;
-                case 0:
-                    const randomSequence = generateRandomLetterSequence(words[currentIndex].length);
-                    // speakText(randomSequence, true);
-                    speakText(randomSequence, false);
-                    console.log("随机字母序列: ", randomSequence);
-                    isWord[currentIndex] = false;
-                    randomWords[currentIndex] = randomSequence;
-                    break;
-                default:
-                    console.log("未知操作");
-                    break;
-                }
-            } else {
-                // isWord[currentIndex - 1]  =  lastTrail['isWord'][currentIndex - 1] === true ? false : true;
-                isWord[currentIndex] = !lastTrail['isWord'][currentIndex];
-
-                console.log("exist  last trail");
-                console.log("lastTrail is word :" + lastTrail['isWord'][currentIndex]);
-                console.log("thisTrail is word :" + isWord[currentIndex]);
-                if (isWord[currentIndex]) {
-                    // speakText(words[currentIndex], true);
-                    speakText(words[currentIndex], false);
-                } else {
-
-                    const randomSequence = generateRandomLetterSequence(words[currentIndex].length);
-                    // speakText(randomSequence, true);
-                    speakText(randomSequence, false);
-                    console.log("随机字母序列: ", randomSequence);
-                    // isWord[currentIndex - 1] = false;
-                    randomWords[currentIndex] = randomSequence;
-
-                }
-
-            }
-
+speakText(words[currentIndex], true);
+ltm[currentIndex] = words[currentIndex];
         } catch (error) {
             console.log(error.message);
         }
@@ -220,11 +173,12 @@ function readNextWord() {
 
     } else {
         resultDiv.textContent = "End of text.";
-        thisTrail['words'] = words;
-        thisTrail['answer'] = answer;
-        thisTrail['inputHistory'] = inputHistory;
-        thisTrail['isWord'] = isWord;
-        thisTrail['randomWords'] = randomWords;
+        thisTrail['ltmWords'] = words;
+        thisTrail['ltmAnswer'] = answer;
+        thisTrail['ltmInputHistory'] = inputHistory;
+        // thisTrail['isWord'] = isWord;
+        // thisTrail['randomWords'] = randomWords;
+        // thisTrail['ltm'] = ltm;
         if (saveHistory.checked) {
             try {
                 addItemToList(thisTrail);
@@ -239,13 +193,14 @@ function readNextWord() {
     }
 }
 
+// Load text file and start reading
+// loadTextFile();
+// };
 
 
 // 生成随机字母序列
 function generateRandomLetterSequence(length) {
-    // const letters = "abcdooaaiiieeeuuuaaaeeeiiiooouuehilmnoprst";
-    // const letters = "1234";
-    const letters = "aehinorst";
+    const letters = "abcdooaaiiieeeuuuaaaeeeiiiooouuehilmnoprst";
     let result = "";
     for (let i = 0; i < length; i++) {
         const randomIndex = Math.floor(Math.random() * letters.length);
@@ -255,7 +210,7 @@ function generateRandomLetterSequence(length) {
 }
 
 function outputHistory() {
-    const textContent = localStorage.getItem("savedHistory");
+    const textContent = localStorage.getItem("ltmSavedHistory");
 
     // 创建一个新的 Blob 对象，将文本内容放入其中
     const blob = new Blob([textContent], {
@@ -264,52 +219,10 @@ function outputHistory() {
 
     // 创建一个下载链接
     const downloadLink = document.createElement("a");
-    downloadLink.download = "output.json"; // 下载文件的名称
+    downloadLink.download = "ltmOutput.json"; // 下载文件的名称
     downloadLink.href = window.URL.createObjectURL(blob);
 
     // 点击链接以下载文件
     downloadLink.click();
 
 }
-
-
-function playTextWithTone(text) {
-  // Web Speech API 部分
-  const utterance = new SpeechSynthesisUtterance(text);
-
-  // 语音结束事件监听
-  utterance.onend = function() {
-    // 创建 Web Audio API 上下文
-    const audioContext = new AudioContext();
-
-    // 创建 Oscillator 节点
-    const oscillator = audioContext.createOscillator();
-    oscillator.type = 'sine'; // 正弦波
-    oscillator.frequency.value = 450; // 450Hz
-
-    // 创建 Gain 节点控制音量
-    const gainNode = audioContext.createGain();
-    gainNode.gain.value = 1.5; // 音量 1.5
-
-    // 连接节点：Oscillator -> Gain -> Destination
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    // 延迟两秒后启动
-    setTimeout(() => {
-      oscillator.start();
-
-      // 播放一*0.2 秒后停止
-      setTimeout(() => {
-        getUserInput();
-        oscillator.stop();
-      }, 200); 
-    }, 1000); 
-  };
-
-  // 开始语音合成
-  speechSynthesis.speak(utterance);
-}
-
-// 调用示例
-// playTextWithTone("hello。");
