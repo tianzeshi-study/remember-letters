@@ -92,7 +92,7 @@ function compareInput(input) {
     resultDiv.textContent = result;
     // if (result == 'Correct!') {
     if (result == true) {
-        console.log(currentIndex -1 );
+        console.log(currentIndex - 1);
         playSound(700, 0.75);
         answer[currentIndex - 1] = true;
         setTimeout(function () {
@@ -152,7 +152,6 @@ function getUserInput() {
     return userInput
 }
 
-
 function readNextWord() {
     if (currentIndex < words.length) {
         const letters = words[currentIndex].split('').join(' ');
@@ -161,12 +160,13 @@ function readNextWord() {
         try {
             // speakText(words[currentIndex], true);
             if (!lastTrail) {
-                const randomNumber = Math.floor(Math.random() * 2);
+                const randomNumber = Math.floor(Math.random() * 3);
                 switch (randomNumber) {
-                    // case 3:
+                case 3:
                     // playSound(350, 1);
                     // speakText("emmmmmmm", true);
-                    // break;
+                    isWord[currentIndex] = null;
+                    break;
                 case 1:
                     // speakText(words[currentIndex], true);
                     speakText(words[currentIndex], false);
@@ -187,25 +187,29 @@ function readNextWord() {
                 }
             } else {
                 // isWord[currentIndex - 1]  =  lastTrail['isWord'][currentIndex - 1] === true ? false : true;
-                isWord[currentIndex] = !lastTrail['isWord'][currentIndex];
+                if (lastTrail['isWord'][currentIndex] !== null) {
+                    // isWord[currentIndex] = !lastTrail['isWord'][currentIndex];
+                    isWord[currentIndex] = lastTrail['isWord'][currentIndex] === true ? false : null;
 
-                console.log("exist  last trail");
-                console.log("lastTrail is word :" + lastTrail['isWord'][currentIndex]);
-                console.log("thisTrail is word :" + isWord[currentIndex]);
-                if (isWord[currentIndex]) {
-                    // speakText(words[currentIndex], true);
-                    speakText(words[currentIndex], false);
+                    console.log("exist  last trail");
+                    console.log("lastTrail is word :" + lastTrail['isWord'][currentIndex]);
+                    console.log("thisTrail is word :" + isWord[currentIndex]);
+                    if (isWord[currentIndex] == null) {
+                        // speakText(words[currentIndex], true);
+                        // speakText(words[currentIndex], false);
+                    } else {
+                        const randomSequence = generateRandomLetterSequence(words[currentIndex].length);
+                        // speakText(randomSequence, true);
+                        speakText(randomSequence, false);
+                        console.log("随机字母序列: ", randomSequence);
+                        // isWord[currentIndex - 1] = false;
+                        randomWords[currentIndex] = randomSequence;
+
+                    }
                 } else {
-
-                    const randomSequence = generateRandomLetterSequence(words[currentIndex].length);
-                    // speakText(randomSequence, true);
-                    speakText(randomSequence, false);
-                    console.log("随机字母序列: ", randomSequence);
-                    // isWord[currentIndex - 1] = false;
-                    randomWords[currentIndex] = randomSequence;
-
+                    speakText(words[currentIndex], false);
+                    isWord[currentIndex] = true;
                 }
-
             }
 
         } catch (error) {
@@ -239,8 +243,6 @@ function readNextWord() {
     }
 }
 
-
-
 // 生成随机字母序列
 function generateRandomLetterSequence(length) {
     // const letters = "abcdooaaiiieeeuuuaaaeeeiiiooouuehilmnoprst";
@@ -272,44 +274,40 @@ function outputHistory() {
 
 }
 
-
 function playTextWithTone(text) {
-  // Web Speech API 部分
-  const utterance = new SpeechSynthesisUtterance(text);
+    // Web Speech API 部分
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.35; // 将语速设置为原来的1.35倍
+    // 语音结束事件监听
+    utterance.onend = function () {
+        // 创建 Web Audio API 上下文
+        const audioContext = new AudioContext();
 
-  // 语音结束事件监听
-  utterance.onend = function() {
-    // 创建 Web Audio API 上下文
-    const audioContext = new AudioContext();
+        // 创建 Oscillator 节点
+        const oscillator = audioContext.createOscillator();
+        oscillator.type = 'sine'; // 正弦波
+        oscillator.frequency.value = 450; // 450Hz
 
-    // 创建 Oscillator 节点
-    const oscillator = audioContext.createOscillator();
-    oscillator.type = 'sine'; // 正弦波
-    oscillator.frequency.value = 450; // 450Hz
+        // 创建 Gain 节点控制音量
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = 1.5; // 音量 1.5
 
-    // 创建 Gain 节点控制音量
-    const gainNode = audioContext.createGain();
-    gainNode.gain.value = 1.5; // 音量 1.5
+        // 连接节点：Oscillator -> Gain -> Destination
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
 
-    // 连接节点：Oscillator -> Gain -> Destination
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+        // 延迟两秒后启动
+        setTimeout(() => {
+            oscillator.start();
 
-    // 延迟两秒后启动
-    setTimeout(() => {
-      oscillator.start();
+            // 播放一*0.2 秒后停止
+            setTimeout(() => {
+                getUserInput();
+                oscillator.stop();
+            }, 200);
+        }, 1000);
+    };
 
-      // 播放一*0.2 秒后停止
-      setTimeout(() => {
-        getUserInput();
-        oscillator.stop();
-      }, 200); 
-    }, 1000); 
-  };
-
-  // 开始语音合成
-  speechSynthesis.speak(utterance);
+    // 开始语音合成
+    speechSynthesis.speak(utterance);
 }
-
-// 调用示例
-// playTextWithTone("hello。");
